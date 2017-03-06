@@ -9,6 +9,7 @@ System.config({
 
   map: {
     "typescript": "npm:typescript@2.2.1",
+    "uuid": "npm:uuid@3.0.1",
     "github:jspm/nodelibs-assert@0.1.0": {
       "assert": "npm:assert@1.4.1"
     },
@@ -337,6 +338,9 @@ System.config({
     "npm:util@0.10.3": {
       "inherits": "npm:inherits@2.0.1",
       "process": "github:jspm/nodelibs-process@0.1.2"
+    },
+    "npm:uuid@3.0.1": {
+      "crypto": "github:jspm/nodelibs-crypto@0.1.0"
     },
     "npm:vm-browserify@0.0.4": {
       "indexof": "npm:indexof@0.0.1"
