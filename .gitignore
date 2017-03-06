@@ -1,2 +1,5 @@
 jspm_packages
 .idea/
+node_modules
+*.js
+*.js.map

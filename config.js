@@ -8,6 +8,7 @@ System.config({
   },
 
   map: {
+    "three": "github:mrdoob/three.js@master",
     "typescript": "npm:typescript@2.2.1",
     "github:jspm/nodelibs-assert@0.1.0": {
       "assert": "npm:assert@1.4.1"
