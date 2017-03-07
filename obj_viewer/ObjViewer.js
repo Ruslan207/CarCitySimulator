@@ -90,6 +90,10 @@ System.register(["./CameraMouseController", "dat-gui", "./OBJLoader", "./MTLLoad
                     lightFolder.add(light, 'distance');
                     lightFolder.add(light, 'decay');
                     lightFolder.add(light, 'power');
+                    var amlightFolder = gui.addFolder('AmbientLight');
+                    amlightFolder.add(this, 'moveLightToCamera');
+                    GuiMaterialHelper_1.GuiMaterialHelper.addColor(amlightFolder, ambientLight, 'color');
+                    amlightFolder.add(ambientLight, 'intensity');
                     this.currentObject = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({
                         color: 0xF25050,
                         shading: THREE.FlatShading

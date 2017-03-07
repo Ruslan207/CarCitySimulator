@@ -128,6 +128,11 @@ class ObjViewer{
         lightFolder.add(light, 'decay');
         lightFolder.add(light, 'power');
 
+        let amlightFolder = gui.addFolder('AmbientLight');
+        amlightFolder.add(this, 'moveLightToCamera');
+        GuiMaterialHelper.addColor(amlightFolder, ambientLight, 'color');
+        amlightFolder.add(ambientLight, 'intensity');
+
 
         this.currentObject = new THREE.Mesh(
             new THREE.BoxGeometry( 1, 1, 1 ),
