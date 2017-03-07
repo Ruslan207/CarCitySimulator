@@ -10,6 +10,9 @@ THREE.OBJLoader = function ( manager ) {
 
 	this.materials = null;
 
+	this.swapNormalsYZ = false
+	this.swapVertsYZ = false
+
 	this.regexp = {
 		// v float float float
 		vertex_pattern           : /^v\s+([\d|\.|\+|\-|e|E]+)\s+([\d|\.|\+|\-|e|E]+)\s+([\d|\.|\+|\-|e|E]+)/,
@@ -464,30 +467,43 @@ THREE.OBJLoader.prototype = {
 			if ( lineFirstChar === '#' ) continue;
 
 			if ( lineFirstChar === 'v' ) {
-
 				lineSecondChar = line.charAt( 1 );
-
 				if ( lineSecondChar === ' ' && ( result = this.regexp.vertex_pattern.exec( line ) ) !== null ) {
 
 					// 0                  1      2      3
 					// ["v 1.0 2.0 3.0", "1.0", "2.0", "3.0"]
 
-					state.vertices.push(
-						parseFloat( result[ 1 ] ),
-						parseFloat( result[ 2 ] ),
-						parseFloat( result[ 3 ] )
-					);
+					if (this.swapVertsYZ) {
+						state.vertices.push(
+							parseFloat( result[ 1 ] ),
+							parseFloat( result[ 3 ] ),
+							parseFloat( result[ 2 ] )
+						);
+					} else {
+						state.vertices.push(
+							parseFloat( result[ 1 ] ),
+							parseFloat( result[ 2 ] ),
+							parseFloat( result[ 3 ] )
+						);
+					}
 
 				} else if ( lineSecondChar === 'n' && ( result = this.regexp.normal_pattern.exec( line ) ) !== null ) {
 
 					// 0                   1      2      3
 					// ["vn 1.0 2.0 3.0", "1.0", "2.0", "3.0"]
-
-					state.normals.push(
-						parseFloat( result[ 1 ] ),
-						parseFloat( result[ 2 ] ),
-						parseFloat( result[ 3 ] )
-					);
+					if (this.swapNormalsYZ) {
+                        state.normals.push(
+                            parseFloat(result[1]),
+                            parseFloat(result[3]),
+                            parseFloat(result[2])
+                        );
+                    } else {
+						state.normals.push(
+                            parseFloat(result[1]),
+                            parseFloat(result[2]),
+                            parseFloat(result[3])
+                        );
+					}
 
 				} else if ( lineSecondChar === 't' && ( result = this.regexp.uv_pattern.exec( line ) ) !== null ) {
 
