@@ -54,12 +54,14 @@ class ObjViewer{
 
             for (let child of obj.children){
                 mat = child['material'];
-                if (mat !== undefined && mat instanceof THREE.Material) {
+                if (mat !== undefined && mat instanceof THREE.Material && !materials.some(m => m == mat)) {
                     materials.push(mat)
                 }
             }
+            let i = 0;
             for (mat of materials){
-                let folder = materials_folder.addFolder(mat.name);
+                i+=1;
+                let folder = materials_folder.addFolder(i+'|'+mat.name);
                 GuiMaterialHelper.fillMaterialFolder(folder, mat);
             }
         }

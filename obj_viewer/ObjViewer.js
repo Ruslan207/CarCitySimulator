@@ -130,13 +130,15 @@ System.register(["./CameraMouseController", "dat-gui", "./OBJLoader", "./MTLLoad
                             for (var _i = 0, _a = obj.children; _i < _a.length; _i++) {
                                 var child = _a[_i];
                                 mat = child['material'];
-                                if (mat !== undefined && mat instanceof THREE.Material) {
+                                if (mat !== undefined && mat instanceof THREE.Material && !materials.some(function (m) { return m == mat; })) {
                                     materials.push(mat);
                                 }
                             }
+                            var i = 0;
                             for (var _b = 0, materials_1 = materials; _b < materials_1.length; _b++) {
                                 mat = materials_1[_b];
-                                var folder = materials_folder.addFolder(mat.name);
+                                i += 1;
+                                var folder = materials_folder.addFolder(i + '|' + mat.name);
                                 GuiMaterialHelper_1.GuiMaterialHelper.fillMaterialFolder(folder, mat);
                             }
                         }
