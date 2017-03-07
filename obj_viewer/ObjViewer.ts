@@ -1,7 +1,6 @@
-import * as THREE from "three"
 import CameraMouseController from "./CameraMouseController";
 import * as dat from "dat-gui"
-import {OBJLoader} from "./OBJLoader";
+import "./OBJLoader"
 
 /**
  * Created by anton on 3/6/17.
@@ -86,6 +85,8 @@ class ObjViewer{
         gui.add(this, 'showPlane');
         gui.addColor(this, 'color');
         gui.add(this, 'moveLightToCamera');
+
+        this.loadObj();
     }
 
     public get showPlane(){
@@ -126,16 +127,18 @@ class ObjViewer{
     }
 
     public loadObj = () => {
-        var loader = new OBJLoader();
+        let loader = new THREE.OBJLoader();
+        let self = this;
 		// load a resource
 		loader.load(
 			// resource URL
 			'assets/building-office-small.obj',
 			// Function when resource is loaded
-			function ( object ) {
-				this.scene.remove(this.currentObject);
-				this.currentObject = object;
-				this.scene.add(this.currentObject);
+			function ( geometry ) {
+				self.scene.remove(self.currentObject);
+				console.log(geometry)
+				self.currentObject = geometry;
+				self.scene.add(self.currentObject);
 			}
 		);
 

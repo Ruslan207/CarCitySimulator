@@ -1,22 +1,17 @@
-System.register(["three", "./CameraMouseController", "dat-gui", "./OBJLoader"], function(exports_1, context_1) {
+System.register(["./CameraMouseController", "dat-gui", "./OBJLoader"], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
-    var THREE, CameraMouseController_1, dat, OBJLoader_1;
+    var CameraMouseController_1, dat;
     var ObjViewer;
     return {
         setters:[
-            function (THREE_1) {
-                THREE = THREE_1;
-            },
             function (CameraMouseController_1_1) {
                 CameraMouseController_1 = CameraMouseController_1_1;
             },
             function (dat_1) {
                 dat = dat_1;
             },
-            function (OBJLoader_1_1) {
-                OBJLoader_1 = OBJLoader_1_1;
-            }],
+            function (_1) {}],
         execute: function() {
             /**
              * Created by anton on 3/6/17.
@@ -28,16 +23,18 @@ System.register(["three", "./CameraMouseController", "dat-gui", "./OBJLoader"], 
                     this.fov = fov;
                     this.dpi = dpi;
                     this.loadObj = function () {
-                        var loader = new OBJLoader_1.OBJLoader();
+                        var loader = new THREE.OBJLoader();
+                        var self = _this;
                         // load a resource
                         loader.load(
                         // resource URL
                         'assets/building-office-small.obj', 
                         // Function when resource is loaded
-                        function (object) {
-                            this.scene.remove(this.currentObject);
-                            this.currentObject = object;
-                            this.scene.add(this.currentObject);
+                        function (geometry) {
+                            self.scene.remove(self.currentObject);
+                            console.log(geometry);
+                            self.currentObject = geometry;
+                            self.scene.add(self.currentObject);
                         });
                     };
                     this.loop = function () {
@@ -82,6 +79,7 @@ System.register(["three", "./CameraMouseController", "dat-gui", "./OBJLoader"], 
                     gui.add(this, 'showPlane');
                     gui.addColor(this, 'color');
                     gui.add(this, 'moveLightToCamera');
+                    this.loadObj();
                 }
                 ObjViewer.prototype.resize = function (width, height) {
                     console.log(width, height);
