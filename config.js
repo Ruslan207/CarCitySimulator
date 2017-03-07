@@ -8,6 +8,7 @@ System.config({
   },
 
   map: {
+    "dat-gui": "npm:dat-gui@0.5.0",
     "three": "github:mrdoob/three.js@master",
     "typescript": "npm:typescript@2.2.1",
     "github:jspm/nodelibs-assert@0.1.0": {

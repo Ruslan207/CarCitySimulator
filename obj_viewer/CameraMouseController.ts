@@ -67,17 +67,16 @@ class CameraMouseController {
             this.updateCameraPosition();
         } else if (this.moveMode == MoveMode.offset) {
             let angle = this.theta*Math.PI/360;
-            this.offset.x = -this.OFFSET_STEP*(deltaY*Math.sin(angle)-deltaX*Math.cos(angle)) + this.onMouseDownOffset.x;
-            this.offset.y = -this.OFFSET_STEP*(deltaY*Math.cos(angle)+deltaX*Math.sin(angle))+ this.onMouseDownOffset.y;
-            this.offset.x = Math.min(5, Math.max(-5, this.offset.x));
-            this.offset.y = Math.min(5, Math.max(-5, this.offset.y));
+            let sin = Math.sin(angle);
+            let cos = Math.cos(angle);
+            this.offset.x = -this.OFFSET_STEP*(deltaY*sin-deltaX*cos) + this.onMouseDownOffset.x;
+            this.offset.y = -this.OFFSET_STEP*(deltaY*cos+deltaX*sin)+ this.onMouseDownOffset.y;
+            // this.offset.x = Math.min(this.offsetMax.x, Math.max(this.offsetMin.x, this.offset.x));
+            // this.offset.y = Math.min(this.offsetMax.y, Math.max(this.offsetMin.y, this.offset.y));
             this.updateCameraPosition();
         }
         // mouse3D = projector.unprojectVector(new THREE.Vector3(( event.clientX / renderer.domElement.width ) * 2 - 1, -( event.clientY / renderer.domElement.height ) * 2 + 1, 0.5), camera);
         // ray.direction = mouse3D.subSelf(camera.position).normalize();
-
-        // interact();
-        // render();
     };
 
     public onDocumentMouseUp = (event: MouseEvent) => {
@@ -135,9 +134,9 @@ class CameraMouseController {
 
     public onDocumentMouseWheel = (event: WheelEvent) => {
         this.radius -= this.ZOOM_STEP*event.wheelDeltaY;
-        if (this.radius<1.5) {
-            this.radius = 1.5;
-        }
+        // if (this.radius < this.minRadius) {
+        //     this.radius = this.minRadius;
+        // }
         this.updateCameraPosition();
     }
 

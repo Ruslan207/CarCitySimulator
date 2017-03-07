@@ -1,6 +1,7 @@
 {
   "jspm": {
     "dependencies": {
+      "dat-gui": "npm:dat-gui@^0.5.0",
       "three": "github:mrdoob/three.js@master"
     },
     "devDependencies": {
@@ -8,6 +9,7 @@
     }
   },
   "dependencies": {
+    "@types/dat-gui": "^0.6.2",
     "@types/three": "^0.83.4"
   }
 }
