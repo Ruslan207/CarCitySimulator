@@ -90,13 +90,22 @@ export class GuiMaterialHelper {
 
     public static removeFolder(folder: dat.GUI, parent: dat.GUI) {
         folder.close();
-        console.log('close')
-        console.log(parent.__ul)
         parent.__ul.removeChild(folder.domElement.parentNode);
-        console.log('removeChilde')
         delete parent.__folders[folder.name];
         parent.onResize();
-        console.log('onResize')
+    }
+
+    public static clearFolder(folder: dat.GUI){
+        for (let item_name in folder.__folders){
+            let item = folder.__folders[item_name];
+            GuiMaterialHelper.removeFolder(item, folder);
+        }
+
+        for (let item_name in folder.__controllers){
+            let item = folder.__controllers[item_name];
+            folder.remove(item);
+            delete folder.__controllers[item_name];
+        }
     }
 
     public static guiMaterial(gui: dat.GUI, material: THREE.Material) {

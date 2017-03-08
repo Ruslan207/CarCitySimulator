@@ -4,6 +4,7 @@ import "./OBJLoader"
 import "./MTLLoader"
 import MTLLoader = THREE.MTLLoader;
 import {GuiMaterialHelper} from "./GuiMaterialHelper";
+import {patchLoader, requestFileFromLocal} from "./PatchDialogFileLoader"
 
 /**
  * Created by anton on 3/6/17.
@@ -20,21 +21,20 @@ class ObjViewer{
     private gui: dat.GUI;
     private light: THREE.PointLight;
     private plane: THREE.Mesh;
+    private materialsHolder: THREE.MTLLoader.MaterialCreator;
+    private materialsFolder: dat.GUI;
+    private objectsFolder: dat.GUI;
+    private texturesFolder: dat.GUI;
+    private textures;
 
 
     private set currentObject(obj:THREE.Object3D){
-        let materials_folder = this.gui.__folders['materials']
-        if (materials_folder == null || materials_folder == undefined) {
-            materials_folder = this.gui.addFolder('materials')
-        }
         if (this._currentObject != null) {
             this.scene.remove(this._currentObject);
-            for (let folder_name in materials_folder.__folders){
-                let folder = materials_folder.__folders[folder_name]
-                console.log(folder)
-                GuiMaterialHelper.removeFolder(folder, materials_folder);
-            }
+            GuiMaterialHelper.clearFolder(this.objectsFolder);
+            GuiMaterialHelper.clearFolder(this.materialsFolder);
         }
+
         this._currentObject = obj;
         if (obj !== null) {
             this.scene.add(obj);
@@ -46,29 +46,49 @@ class ObjViewer{
 
             //build list of used materials
             let materials:THREE.Material[] = [];
-            var mat = obj['material'];
+            let mat = obj['material'];
 
-            if (mat !== undefined && mat instanceof THREE.Material) {
+            if (mat instanceof THREE.Material) {
                 materials.push(mat)
             }
+
+            let objects:THREE.Object3D[] = [];
+            if (!(obj instanceof THREE.Group)){
+                objects.push(obj)
+            }
+
 
             for (let child of obj.children){
                 mat = child['material'];
                 if (mat !== undefined && mat instanceof THREE.Material && !materials.some(m => m == mat)) {
                     materials.push(mat)
                 }
+                objects.push(child)
             }
-            let i = 0;
-            for (mat of materials){
-                i+=1;
-                let folder = materials_folder.addFolder(i+'|'+mat.name);
+            for (let mat_i in materials){
+                let mat = materials[mat_i];
+                let folder = this.materialsFolder.addFolder(mat_i+'|'+mat.name);
                 GuiMaterialHelper.fillMaterialFolder(folder, mat);
+            }
+            objects.sort((a:THREE.Object3D, b:THREE.Object3D):number => {return a.name.localeCompare(b.name)});
+            let objects_wrapper = {};
+            for (let obj_i in objects){
+                let obj = objects[obj_i];
+                let name = obj_i+'|'+obj.name;
+                Object.defineProperty(objects_wrapper, name, {
+                    get: function() {
+                        return obj.visible;
+                    },
+                    set: function(val:boolean){
+                        obj.visible = val;
+                    }
+                })
+                this.objectsFolder.add(objects_wrapper, name);
             }
         }
     }
 
     private resize(width:number, height:number) {
-        console.log(width, height);
         this.width = width;
         this.height = height;
         this.camera.aspect = width / height;
@@ -86,8 +106,11 @@ class ObjViewer{
 
         renderer.setPixelRatio(dpi);
         renderer.setClearColor( 0xffffff, 1);
+
         this.resize(width, height);
         holder.appendChild( renderer.domElement );
+
+        this.materialsHolder = new THREE.MTLLoader.MaterialCreator();
 
         let plane = this.plane = new THREE.Mesh(
             new THREE.PlaneGeometry( 10, 10, 10, 10 ),
@@ -111,14 +134,15 @@ class ObjViewer{
         this.resetCamera();
         this.moveLightToCamera();
 
-
-
         window.addEventListener('resize', () => {
             this.resize(holder.clientWidth, holder.clientHeight);
         });
 
         let gui = this.gui = new dat.GUI();
-        gui.add(this, 'loadObj');
+        gui.addColor(this, 'background');
+        gui.add(this, 'loadMTL');
+        this.texturesFolder = this.gui.addFolder('textures');
+        gui.add(this, 'loadOBJ');
         gui.add(this, 'resetCamera');
         gui.add(this, 'showPlane');
 
@@ -129,12 +153,32 @@ class ObjViewer{
         lightFolder.add(light, 'distance');
         lightFolder.add(light, 'decay');
         lightFolder.add(light, 'power');
+        lightFolder.add(light, 'visible');
 
         let amlightFolder = gui.addFolder('AmbientLight');
         amlightFolder.add(this, 'moveLightToCamera');
         GuiMaterialHelper.addColor(amlightFolder, ambientLight, 'color');
         amlightFolder.add(ambientLight, 'intensity');
+        amlightFolder.add(ambientLight, 'visible');
 
+        this.textures = {};
+
+        this.materialsFolder = this.gui.addFolder('materials');
+        this.objectsFolder = this.gui.addFolder('objects');
+
+        let texturesFolder = this.texturesFolder;
+        let textures = this.textures;
+
+        patchLoader(THREE.FileLoader);
+        patchLoader(THREE.ImageLoader, null, (url, loadFunc, instance, onLoad, onProgress, onError) => {
+            if (textures[url] == undefined) {
+                textures[url] = (e) => {
+                    requestFileFromLocal(url, loadFunc, instance, onLoad, onProgress, onError);
+                };
+                texturesFolder.add(textures, url);
+                texturesFolder.open();
+            }
+        });
 
         this.currentObject = new THREE.Mesh(
             new THREE.BoxGeometry( 1, 1, 1 ),
@@ -143,8 +187,8 @@ class ObjViewer{
                 shading: THREE.FlatShading
             })
         );
+        // this.loadMTL(this.loadOBJ);
 
-        this.loadObj();
     }
 
     public get showPlane(){
@@ -155,62 +199,65 @@ class ObjViewer{
         this.plane.visible=val;
     }
 
+    public get background(){
+        return '#'+this.renderer.getClearColor().getHexString();
+    }
+
+    public set background(val:string){
+        this.renderer.setClearColor(new THREE.Color(val).getHex());
+    }
+
     public moveLightToCamera(){
         let p = this.camera.position;
         this.light.position.set(p.x, p.y, p.z);
     }
-
-    // public get wireframe(){
-    //     return this.material.wireframe;
-    // }
-    //
-    // public set wireframe(val:boolean){
-    //     this.material.wireframe=val;
-    // }
-    //
-    // public get color(){
-    //     return '#' + this.material.color.getHexString();
-    // }
-    //
-    // public set color(val:string){
-    //     this.material.color.set(val);
-    // }
 
     public resetCamera(){
         let mc = this.mouseController;
         mc.theta=70;
         mc.phi=30;
         mc.radius=10;
+        mc.offset.set(0,0,0);
         mc.updateCameraPosition();
     }
 
-    public loadObj = () => {
+    private loaderOnProgress( xhr ) {
+        if ( xhr.lengthComputable ) {
+            let percentComplete = xhr.loaded / xhr.total * 100;
+            console.log( Math.round(percentComplete*100)/100 + '% downloaded' );
+        }
+    };
+
+    private loaderOnError( xhr ) {
+        console.log('Error', xhr)
+    };
+
+    public loadOBJ = () => {
         let objLoader = new THREE.OBJLoader();
+        let self = this;
+
+        objLoader.setMaterials(self.materialsHolder);
+        objLoader.setPath( '' );
+        objLoader.load( 'landscape_v2_000000.obj', function ( object ) {
+            self.currentObject = object;
+        }, self.loaderOnProgress, self.loaderOnError);
+
+    };
+
+    private loadMTL = (callback:() => void) => {
+
+        GuiMaterialHelper.clearFolder(this.materialsFolder);
         let mtlLoader = new THREE.MTLLoader();
         let self = this;
 
-        let onProgress = function ( xhr ) {
-            if ( xhr.lengthComputable ) {
-                let percentComplete = xhr.loaded / xhr.total * 100;
-                console.log( Math.round(percentComplete*100)/100 + '% downloaded' );
-            }
-        };
-
-        let onError = function ( xhr ) { };
-
-        mtlLoader.setPath( 'assets/' );
-        mtlLoader.load('landscape_v2_000000.mtl', function( materials:any) {
-            console.log(materials);
-            materials.preload();
-
-            objLoader.setMaterials(materials);
-            objLoader.setPath( 'assets/' );
-            objLoader.load( 'landscape_v2_000000.obj', function ( object ) {
-                // self.scene.add(object);
-                self.currentObject = object;
-            }, onProgress, onError );
-
-        });
+        mtlLoader.setPath( '' );
+        mtlLoader.setTexturePath( '' );
+        mtlLoader.load('landscape_v2_000000.mtl', function( materials:THREE.MTLLoader.MaterialCreator) {
+            console.log(mtlLoader)
+            self.materialsHolder = materials;
+            self.materialsHolder.preload();
+            //callback()
+        }, self.loaderOnProgress, self.loaderOnError);
     }
 
     public loop = () => {

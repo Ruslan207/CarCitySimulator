@@ -1,7 +1,7 @@
-System.register(["./CameraMouseController", "dat-gui", "./OBJLoader", "./MTLLoader", "./GuiMaterialHelper"], function(exports_1, context_1) {
+System.register(["./CameraMouseController", "dat-gui", "./OBJLoader", "./MTLLoader", "./GuiMaterialHelper", "./PatchDialogFileLoader"], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
-    var CameraMouseController_1, dat, GuiMaterialHelper_1;
+    var CameraMouseController_1, dat, GuiMaterialHelper_1, PatchDialogFileLoader_1;
     var MTLLoader, ObjViewer;
     return {
         setters:[
@@ -15,6 +15,9 @@ System.register(["./CameraMouseController", "dat-gui", "./OBJLoader", "./MTLLoad
             function (_2) {},
             function (GuiMaterialHelper_1_1) {
                 GuiMaterialHelper_1 = GuiMaterialHelper_1_1;
+            },
+            function (PatchDialogFileLoader_1_1) {
+                PatchDialogFileLoader_1 = PatchDialogFileLoader_1_1;
             }],
         execute: function() {
             /**
@@ -26,28 +29,27 @@ System.register(["./CameraMouseController", "dat-gui", "./OBJLoader", "./MTLLoad
                     this.holder = holder;
                     this.fov = fov;
                     this.dpi = dpi;
-                    this.loadObj = function () {
+                    this.loadOBJ = function () {
                         var objLoader = new THREE.OBJLoader();
+                        var self = _this;
+                        objLoader.setMaterials(self.materialsHolder);
+                        objLoader.setPath('');
+                        objLoader.load('landscape_v2_000000.obj', function (object) {
+                            self.currentObject = object;
+                        }, self.loaderOnProgress, self.loaderOnError);
+                    };
+                    this.loadMTL = function (callback) {
+                        GuiMaterialHelper_1.GuiMaterialHelper.clearFolder(_this.materialsFolder);
                         var mtlLoader = new THREE.MTLLoader();
                         var self = _this;
-                        var onProgress = function (xhr) {
-                            if (xhr.lengthComputable) {
-                                var percentComplete = xhr.loaded / xhr.total * 100;
-                                console.log(Math.round(percentComplete * 100) / 100 + '% downloaded');
-                            }
-                        };
-                        var onError = function (xhr) { };
-                        mtlLoader.setPath('assets/');
+                        mtlLoader.setPath('');
+                        mtlLoader.setTexturePath('');
                         mtlLoader.load('landscape_v2_000000.mtl', function (materials) {
-                            console.log(materials);
-                            materials.preload();
-                            objLoader.setMaterials(materials);
-                            objLoader.setPath('assets/');
-                            objLoader.load('landscape_v2_000000.obj', function (object) {
-                                // self.scene.add(object);
-                                self.currentObject = object;
-                            }, onProgress, onError);
-                        });
+                            console.log(mtlLoader);
+                            self.materialsHolder = materials;
+                            self.materialsHolder.preload();
+                            //callback()
+                        }, self.loaderOnProgress, self.loaderOnError);
                     };
                     this.loop = function () {
                         requestAnimationFrame(_this.loop);
@@ -63,6 +65,7 @@ System.register(["./CameraMouseController", "dat-gui", "./OBJLoader", "./MTLLoad
                     renderer.setClearColor(0xffffff, 1);
                     this.resize(width, height);
                     holder.appendChild(renderer.domElement);
+                    this.materialsHolder = new THREE.MTLLoader.MaterialCreator();
                     var plane = this.plane = new THREE.Mesh(new THREE.PlaneGeometry(10, 10, 10, 10), new THREE.MeshBasicMaterial({ color: 0x777777, wireframe: true, side: THREE.DoubleSide }));
                     scene.add(plane);
                     var axisHelper = new THREE.AxisHelper(2);
@@ -80,7 +83,10 @@ System.register(["./CameraMouseController", "dat-gui", "./OBJLoader", "./MTLLoad
                         _this.resize(holder.clientWidth, holder.clientHeight);
                     });
                     var gui = this.gui = new dat.GUI();
-                    gui.add(this, 'loadObj');
+                    gui.addColor(this, 'background');
+                    gui.add(this, 'loadMTL');
+                    this.texturesFolder = this.gui.addFolder('textures');
+                    gui.add(this, 'loadOBJ');
                     gui.add(this, 'resetCamera');
                     gui.add(this, 'showPlane');
                     var lightFolder = gui.addFolder('light');
@@ -90,29 +96,39 @@ System.register(["./CameraMouseController", "dat-gui", "./OBJLoader", "./MTLLoad
                     lightFolder.add(light, 'distance');
                     lightFolder.add(light, 'decay');
                     lightFolder.add(light, 'power');
+                    lightFolder.add(light, 'visible');
                     var amlightFolder = gui.addFolder('AmbientLight');
                     amlightFolder.add(this, 'moveLightToCamera');
                     GuiMaterialHelper_1.GuiMaterialHelper.addColor(amlightFolder, ambientLight, 'color');
                     amlightFolder.add(ambientLight, 'intensity');
+                    amlightFolder.add(ambientLight, 'visible');
+                    this.textures = {};
+                    this.materialsFolder = this.gui.addFolder('materials');
+                    this.objectsFolder = this.gui.addFolder('objects');
+                    var texturesFolder = this.texturesFolder;
+                    var textures = this.textures;
+                    PatchDialogFileLoader_1.patchLoader(THREE.FileLoader);
+                    PatchDialogFileLoader_1.patchLoader(THREE.ImageLoader, null, function (url, loadFunc, instance, onLoad, onProgress, onError) {
+                        if (textures[url] == undefined) {
+                            textures[url] = function (e) {
+                                PatchDialogFileLoader_1.requestFileFromLocal(url, loadFunc, instance, onLoad, onProgress, onError);
+                            };
+                            texturesFolder.add(textures, url);
+                            texturesFolder.open();
+                        }
+                    });
                     this.currentObject = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({
                         color: 0xF25050,
                         shading: THREE.FlatShading
                     }));
-                    this.loadObj();
+                    // this.loadMTL(this.loadOBJ);
                 }
                 Object.defineProperty(ObjViewer.prototype, "currentObject", {
                     set: function (obj) {
-                        var materials_folder = this.gui.__folders['materials'];
-                        if (materials_folder == null || materials_folder == undefined) {
-                            materials_folder = this.gui.addFolder('materials');
-                        }
                         if (this._currentObject != null) {
                             this.scene.remove(this._currentObject);
-                            for (var folder_name in materials_folder.__folders) {
-                                var folder = materials_folder.__folders[folder_name];
-                                console.log(folder);
-                                GuiMaterialHelper_1.GuiMaterialHelper.removeFolder(folder, materials_folder);
-                            }
+                            GuiMaterialHelper_1.GuiMaterialHelper.clearFolder(this.objectsFolder);
+                            GuiMaterialHelper_1.GuiMaterialHelper.clearFolder(this.materialsFolder);
                         }
                         this._currentObject = obj;
                         if (obj !== null) {
@@ -123,23 +139,45 @@ System.register(["./CameraMouseController", "dat-gui", "./OBJLoader", "./MTLLoad
                             // folder.add(obj.position, 'z');
                             //build list of used materials
                             var materials = [];
-                            var mat = obj['material'];
-                            if (mat !== undefined && mat instanceof THREE.Material) {
-                                materials.push(mat);
+                            var mat_1 = obj['material'];
+                            if (mat_1 instanceof THREE.Material) {
+                                materials.push(mat_1);
+                            }
+                            var objects = [];
+                            if (!(obj instanceof THREE.Group)) {
+                                objects.push(obj);
                             }
                             for (var _i = 0, _a = obj.children; _i < _a.length; _i++) {
                                 var child = _a[_i];
-                                mat = child['material'];
-                                if (mat !== undefined && mat instanceof THREE.Material && !materials.some(function (m) { return m == mat; })) {
-                                    materials.push(mat);
+                                mat_1 = child['material'];
+                                if (mat_1 !== undefined && mat_1 instanceof THREE.Material && !materials.some(function (m) { return m == mat_1; })) {
+                                    materials.push(mat_1);
                                 }
+                                objects.push(child);
                             }
-                            var i = 0;
-                            for (var _b = 0, materials_1 = materials; _b < materials_1.length; _b++) {
-                                mat = materials_1[_b];
-                                i += 1;
-                                var folder = materials_folder.addFolder(i + '|' + mat.name);
-                                GuiMaterialHelper_1.GuiMaterialHelper.fillMaterialFolder(folder, mat);
+                            for (var mat_i in materials) {
+                                var mat_2 = materials[mat_i];
+                                var folder = this.materialsFolder.addFolder(mat_i + '|' + mat_2.name);
+                                GuiMaterialHelper_1.GuiMaterialHelper.fillMaterialFolder(folder, mat_2);
+                            }
+                            objects.sort(function (a, b) { return a.name.localeCompare(b.name); });
+                            var objects_wrapper = {};
+                            var _loop_1 = function(obj_i) {
+                                var obj_1 = objects[obj_i];
+                                var name_1 = obj_i + '|' + obj_1.name;
+                                Object.defineProperty(objects_wrapper, name_1, {
+                                    get: function () {
+                                        return obj_1.visible;
+                                    },
+                                    set: function (val) {
+                                        obj_1.visible = val;
+                                    }
+                                });
+                                this_1.objectsFolder.add(objects_wrapper, name_1);
+                            };
+                            var this_1 = this;
+                            for (var obj_i in objects) {
+                                _loop_1(obj_i);
                             }
                         }
                     },
@@ -147,7 +185,6 @@ System.register(["./CameraMouseController", "dat-gui", "./OBJLoader", "./MTLLoad
                     configurable: true
                 });
                 ObjViewer.prototype.resize = function (width, height) {
-                    console.log(width, height);
                     this.width = width;
                     this.height = height;
                     this.camera.aspect = width / height;
@@ -164,32 +201,39 @@ System.register(["./CameraMouseController", "dat-gui", "./OBJLoader", "./MTLLoad
                     enumerable: true,
                     configurable: true
                 });
+                Object.defineProperty(ObjViewer.prototype, "background", {
+                    get: function () {
+                        return '#' + this.renderer.getClearColor().getHexString();
+                    },
+                    set: function (val) {
+                        this.renderer.setClearColor(new THREE.Color(val).getHex());
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
                 ObjViewer.prototype.moveLightToCamera = function () {
                     var p = this.camera.position;
                     this.light.position.set(p.x, p.y, p.z);
                 };
-                // public get wireframe(){
-                //     return this.material.wireframe;
-                // }
-                //
-                // public set wireframe(val:boolean){
-                //     this.material.wireframe=val;
-                // }
-                //
-                // public get color(){
-                //     return '#' + this.material.color.getHexString();
-                // }
-                //
-                // public set color(val:string){
-                //     this.material.color.set(val);
-                // }
                 ObjViewer.prototype.resetCamera = function () {
                     var mc = this.mouseController;
                     mc.theta = 70;
                     mc.phi = 30;
                     mc.radius = 10;
+                    mc.offset.set(0, 0, 0);
                     mc.updateCameraPosition();
                 };
+                ObjViewer.prototype.loaderOnProgress = function (xhr) {
+                    if (xhr.lengthComputable) {
+                        var percentComplete = xhr.loaded / xhr.total * 100;
+                        console.log(Math.round(percentComplete * 100) / 100 + '% downloaded');
+                    }
+                };
+                ;
+                ObjViewer.prototype.loaderOnError = function (xhr) {
+                    console.log('Error', xhr);
+                };
+                ;
                 return ObjViewer;
             }());
             exports_1("default",ObjViewer);

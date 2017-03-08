@@ -33,13 +33,20 @@ System.register([], function(exports_1, context_1) {
                 };
                 GuiMaterialHelper.removeFolder = function (folder, parent) {
                     folder.close();
-                    console.log('close');
-                    console.log(parent.__ul);
                     parent.__ul.removeChild(folder.domElement.parentNode);
-                    console.log('removeChilde');
                     delete parent.__folders[folder.name];
                     parent.onResize();
-                    console.log('onResize');
+                };
+                GuiMaterialHelper.clearFolder = function (folder) {
+                    for (var item_name in folder.__folders) {
+                        var item = folder.__folders[item_name];
+                        GuiMaterialHelper.removeFolder(item, folder);
+                    }
+                    for (var item_name in folder.__controllers) {
+                        var item = folder.__controllers[item_name];
+                        folder.remove(item);
+                        delete folder.__controllers[item_name];
+                    }
                 };
                 GuiMaterialHelper.guiMaterial = function (gui, material) {
                     var folder = gui.addFolder('THREE.Material');

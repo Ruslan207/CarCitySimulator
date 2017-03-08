@@ -22,7 +22,7 @@ System.register(["three"], function(exports_1, context_1) {
                     var _this = this;
                     this.camera = camera;
                     this.radius = radius;
-                    this.OFFSET_STEP = 0.005;
+                    this.OFFSET_STEP = 0.0008;
                     this.ZOOM_STEP = 0.1;
                     this.theta = 0;
                     this.phi = 0;
@@ -66,8 +66,8 @@ System.register(["three"], function(exports_1, context_1) {
                             var angle = _this.theta * Math.PI / 360;
                             var sin = Math.sin(angle);
                             var cos = Math.cos(angle);
-                            _this.offset.x = -_this.OFFSET_STEP * (deltaY * sin - deltaX * cos) + _this.onMouseDownOffset.x;
-                            _this.offset.y = -_this.OFFSET_STEP * (deltaY * cos + deltaX * sin) + _this.onMouseDownOffset.y;
+                            _this.offset.x = -_this.OFFSET_STEP * _this.radius * (deltaY * sin - deltaX * cos) + _this.onMouseDownOffset.x;
+                            _this.offset.y = -_this.OFFSET_STEP * _this.radius * (deltaY * cos + deltaX * sin) + _this.onMouseDownOffset.y;
                             // this.offset.x = Math.min(this.offsetMax.x, Math.max(this.offsetMin.x, this.offset.x));
                             // this.offset.y = Math.min(this.offsetMax.y, Math.max(this.offsetMin.y, this.offset.y));
                             _this.updateCameraPosition();

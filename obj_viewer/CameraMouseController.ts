@@ -11,7 +11,7 @@ enum MoveMode{
 }
 
 class CameraMouseController {
-    OFFSET_STEP = 0.005;
+    OFFSET_STEP = 0.0008;
     ZOOM_STEP = 0.1;
 
 
@@ -22,7 +22,7 @@ class CameraMouseController {
     private onMouseDownPhi = 0;
     private onMouseDownTheta = 0;
     private onMouseDownOffset = new THREE.Vector3();
-    private offset = new THREE.Vector3();
+    public offset = new THREE.Vector3();
 
     private moveMode:MoveMode = MoveMode.none;
 
@@ -69,8 +69,8 @@ class CameraMouseController {
             let angle = this.theta*Math.PI/360;
             let sin = Math.sin(angle);
             let cos = Math.cos(angle);
-            this.offset.x = -this.OFFSET_STEP*(deltaY*sin-deltaX*cos) + this.onMouseDownOffset.x;
-            this.offset.y = -this.OFFSET_STEP*(deltaY*cos+deltaX*sin)+ this.onMouseDownOffset.y;
+            this.offset.x = -this.OFFSET_STEP*this.radius*(deltaY*sin-deltaX*cos) + this.onMouseDownOffset.x;
+            this.offset.y = -this.OFFSET_STEP*this.radius*(deltaY*cos+deltaX*sin)+ this.onMouseDownOffset.y;
             // this.offset.x = Math.min(this.offsetMax.x, Math.max(this.offsetMin.x, this.offset.x));
             // this.offset.y = Math.min(this.offsetMax.y, Math.max(this.offsetMin.y, this.offset.y));
             this.updateCameraPosition();
