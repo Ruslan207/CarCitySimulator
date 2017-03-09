@@ -1,7 +1,7 @@
 import {WorldNode, World} from "./world";
-import "car"
 import {world} from "./main";
 import {Road} from "./road";
+import {Car} from "./car";
 
 enum BuildingType{
 	Home,

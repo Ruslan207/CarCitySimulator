@@ -65,7 +65,7 @@ class Road extends WorldNode{
 		return this._direction;
 	}
 
-	public setConnections(road):void{
+	public setConnections(road: Road):void{
 		if (this.isNear(road) && this.hasSameDirection(road)){
 			if (this.isVertical(road)){
 				switch (this.getBottom(road).direction){
