@@ -92,7 +92,7 @@ class World {
 	private buildings: Array<Building>;
 	public events:EventManager;
 	
-	constructor() {
+	constructor(time:Date) {
 		this.nodes = new WorldNodes();
 		this.parkings = new WorldNodes();
 		this.roads = new WorldNodes();
@@ -129,6 +129,10 @@ class World {
 				}
 			}
 		}
+	}
+
+	tick():void{
+
 	}
 
 	addRoadNode(road: Road):void{

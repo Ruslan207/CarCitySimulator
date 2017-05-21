@@ -8,7 +8,45 @@ enum Direction{
 	ANY
 }
 
+class Modifier {
+
+}
+
+class TrafficLight extends Modifier{
+	private state = 0;
+	private timer;
+
+	constructor(interval: number){
+		super();
+		let sign = +1;
+		this.timer = setInterval(() => {
+			this.timer += sign;
+			this.timer %= 3;
+			if (this.timer == 0 || this.timer == 2){
+				sign *= -1;
+			}
+		}, interval)
+	}
+}
+
+class SpeedLimit extends Modifier{
+	readonly value = Infinity;
+
+	constructor(value?:number){
+		super();
+		if (value != undefined) {
+			this.value = value;
+		}
+	}
+}
+
 class Road extends WorldNode{
+
+	readonly modifiers:Modifier[];
+
+	public addModifier(modifier:Modifier){
+		this.modifiers.push(modifier);
+	}
 
 	public hasSameDirection(road: Road):boolean{
 		if (this.direction == road.direction){

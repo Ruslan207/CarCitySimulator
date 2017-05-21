@@ -7,7 +7,7 @@ System.register(["./world"], function(exports_1, context_1) {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
     var world_1;
-    var Direction, Road;
+    var Direction, Modifier, TrafficLight, SpeedLimit, Road;
     return {
         setters:[
             function (world_1_1) {
@@ -21,12 +21,48 @@ System.register(["./world"], function(exports_1, context_1) {
                 Direction[Direction["DOWN"] = 3] = "DOWN";
                 Direction[Direction["ANY"] = 4] = "ANY";
             })(Direction || (Direction = {}));
+            Modifier = (function () {
+                function Modifier() {
+                }
+                return Modifier;
+            }());
+            TrafficLight = (function (_super) {
+                __extends(TrafficLight, _super);
+                function TrafficLight(interval) {
+                    var _this = this;
+                    _super.call(this);
+                    this.state = 0;
+                    var sign = +1;
+                    this.timer = setInterval(function () {
+                        _this.timer += sign;
+                        _this.timer %= 3;
+                        if (_this.timer == 0 || _this.timer == 2) {
+                            sign *= -1;
+                        }
+                    }, interval);
+                }
+                return TrafficLight;
+            }(Modifier));
+            SpeedLimit = (function (_super) {
+                __extends(SpeedLimit, _super);
+                function SpeedLimit(value) {
+                    _super.call(this);
+                    this.value = Infinity;
+                    if (value != undefined) {
+                        this.value = value;
+                    }
+                }
+                return SpeedLimit;
+            }(Modifier));
             Road = (function (_super) {
                 __extends(Road, _super);
                 function Road(x, y, z, _direction) {
                     _super.call(this, x, y, z);
                     this._direction = _direction;
                 }
+                Road.prototype.addModifier = function (modifier) {
+                    this.modifiers.push(modifier);
+                };
                 Road.prototype.hasSameDirection = function (road) {
                     if (this.direction == road.direction) {
                         return true;

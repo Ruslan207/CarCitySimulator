@@ -35,7 +35,41 @@ System.register(["./world", "./main"], function(exports_1, context_1) {
                     if (this.targets.length > 0) {
                         var src = this.currentCell;
                         var target = this.targets[0];
-                        var three = main_1.world.getNodes();
+                        // let three = world.getNodes();
+                        var queue = [];
+                        var visited = {};
+                        queue.push(src);
+                        while (queue.length > 0) {
+                            var node = queue.shift();
+                            visited[node.id].used = true;
+                            if (target.destination.id != node.id) {
+                                for (var i = 0; i < node.childs.length; i++) {
+                                    var child = node.childs.getByIndex(i);
+                                    if (child && !visited[child.id].used) {
+                                        queue.push(child);
+                                        visited[child.id] = {
+                                            used: false,
+                                            parent: node
+                                        };
+                                    }
+                                }
+                            }
+                            else {
+                                var path = [];
+                                var tmp = node;
+                                while (tmp.id != src.id) {
+                                    path.push(tmp);
+                                    tmp = visited[tmp.id].parent;
+                                }
+                                path.push(tmp);
+                                this.path = new world_1.WorldNodes();
+                                for (var i = path.length - 1; i >= 0; i--) {
+                                    this.path.push(path[i]);
+                                }
+                                return;
+                            }
+                        }
+                        this.path = new world_1.WorldNodes();
                     }
                 };
                 return Car;

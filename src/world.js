@@ -94,7 +94,7 @@ System.register(["GUID", "./road", "./parking_node", "./event_manager"], functio
                 return WorldNodes;
             }());
             World = (function () {
-                function World() {
+                function World(time) {
                     this.nodes = new WorldNodes();
                     this.parkings = new WorldNodes();
                     this.roads = new WorldNodes();
@@ -127,6 +127,8 @@ System.register(["GUID", "./road", "./parking_node", "./event_manager"], functio
                             }
                         }
                     }
+                };
+                World.prototype.tick = function () {
                 };
                 World.prototype.addRoadNode = function (road) {
                     for (var i = 0; i < this.nodes.length; i++) {
