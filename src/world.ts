@@ -3,6 +3,7 @@ import {Road} from "./road";
 import {ParkingNode} from "./parking_node";
 import {Building} from "./building";
 import "./event_manager"
+import {Car} from "./car";
 
 class WorldNode {
 	get removed(): boolean {
@@ -90,6 +91,7 @@ class World {
 	private parkings: WorldNodes;
 	private roads: WorldNodes;
 	private buildings: Array<Building>;
+	private cars: Array<Car>;
 	public events:EventManager;
 	
 	constructor(time:Date) {
@@ -97,10 +99,14 @@ class World {
 		this.parkings = new WorldNodes();
 		this.roads = new WorldNodes();
 		this.buildings = [];
+		this.cars = [];
 		this.events = new EventManager();
+		this.events.subscribe('create_car', (car: Car) => {
+			this.cars.push(car);
+		})
 	}
 
-	getBuildings(){
+	getBuildings():Array<Building>{
 		return this.buildings;
 	}
 
@@ -131,8 +137,15 @@ class World {
 		}
 	}
 
-	tick():void{
+	getCars():Array<Car>{
+		return this.cars;
+	}
 
+	tick(dt: number):void{
+		this.getBuildings().forEach((building)=>{
+			building.tick(dt);
+		});
+		this.getCars()
 	}
 
 	addRoadNode(road: Road):void{

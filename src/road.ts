@@ -8,6 +8,8 @@ enum Direction{
 	ANY
 }
 
+export {Direction}
+
 class Modifier {
 
 }

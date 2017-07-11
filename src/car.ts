@@ -7,13 +7,18 @@ class Target{
 
 class Car{
 
+	readonly id: string;
+
 	constructor() {
 		this.targets = [];
 		this.path = new WorldNodes();
 		let _this = this;
+		this.id = (new GUID()).toString();
+
 		world.events.subscribe('change_road', () => {
 			_this.getPath();
-		})
+		});
+		world.events.trigger('create_car', this);
 	}
 
 	private currentCell:WorldNode;

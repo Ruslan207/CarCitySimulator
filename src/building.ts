@@ -14,12 +14,24 @@ class Parking {
 
 	private cars: Array<Car>;
 
-	constructor(private capacity: number) {
+	constructor(readonly capacity: number) {
 		this.cars = [];
+	}
+
+	public add(car: Car){
+		if (this.cars.length < this.capacity){
+			this.cars.push(car);
+		} else {
+			console.error(`Parking is full [Car id: ${car.id}]`)
+		}
 	}
 }
 
 class Building {
+
+	public tick(dt:number){
+
+	}
 
 	private parking: Parking;
 
@@ -36,6 +48,11 @@ class Building {
 
 		for (let node of linked) {
 			world.addRoadNode(node)
+		}
+		if (this.type == BuildingType.Home){
+			for (let i = 0; i < parkingCapacity; i++) {
+				let car = new Car();
+			}
 		}
 	}
 }
